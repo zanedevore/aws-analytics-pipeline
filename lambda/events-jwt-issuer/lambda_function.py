@@ -25,10 +25,9 @@ def get_client_secret() -> list[str]:
     return [v for v in [current, previous] if v is not None]
     
 def lambda_handler(event, context):
-    body = json.loads(event.get('body','{}'))
-    client_id = body.get('client_id')
-    client_secret = body.get('client_secret')
-    audience = body.get('audience')
+    client_id = event['client_id']
+    client_secret = event['client_secret']
+    audience = event['audience']
 
     if audience != 'analytics-api': return resp(400, 'invalid_client')
     if not client_id or not CLIENT_ID_REGEX.fullmatch(client_id): return resp(400, 'invalid_client')
@@ -44,5 +43,4 @@ def lambda_handler(event, context):
         "exp": now + 3600,
     }
     token = jwt.encode(payload, os.environ["JWT_SIGNING_KEY"], algorithm="HS256")
-    print({"statusCode": 200, "body": json.dumps({"access_token": token, "token_type": "JWT", "expires_in": 3600})})
     return {"statusCode": 200, "body": json.dumps({"access_token": token, "token_type": "JWT", "expires_in": 3600})}
