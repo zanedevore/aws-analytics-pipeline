@@ -25,9 +25,12 @@ def get_client_secret() -> list[str]:
     return [v for v in [current, previous] if v is not None]
     
 def lambda_handler(event, context):
-    client_id = event['client_id']
-    client_secret = event['client_secret']
-    audience = event['audience']
+    try:
+        client_id = event['client_id']
+        client_secret = event['client_secret']
+        audience = event['audience']
+    except KeyError:
+        return resp(400, 'invalid_request')
 
     if audience != 'analytics-api': return resp(400, 'invalid_client')
     if not client_id or not CLIENT_ID_REGEX.fullmatch(client_id): return resp(400, 'invalid_client')
