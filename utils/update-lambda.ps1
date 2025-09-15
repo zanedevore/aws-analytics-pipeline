@@ -12,3 +12,5 @@ Set-Location $Path
 Compress-Archive -Path (gci -path . -File -Recurse) -DestinationPath "function.zip" -Force
 
 aws lambda update-function-code --function-name $function --zip-file fileb://function.zip
+
+Remove-Item "function.zip"
