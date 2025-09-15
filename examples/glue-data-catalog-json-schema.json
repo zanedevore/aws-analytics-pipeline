@@ -1,0 +1,22 @@
+[
+  {
+    "Name": "event_type",
+    "Type": "string",
+    "Comment": ""
+  },
+  {
+    "Name": "player_id",
+    "Type": "string",
+    "Comment": ""
+  },
+  {
+    "Name": "server_id",
+    "Type": "string",
+    "Comment": ""
+  },
+  {
+    "Name": "ts",
+    "Type": "timestamp",
+    "Comment": ""
+  }
+]
