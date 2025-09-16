@@ -12,6 +12,7 @@ logger.setLevel(logging.INFO)
 _secrets = boto3.client('secretsmanager')
 
 SECRET_ID = os.environ['SHARED_SECRET_ID']
+SIGNING_KEY_ID = os.environ['SIGNING_KEY_ID']
 CLIENT_ID_REGEX = re.compile(os.environ['CLIENT_ID_REGEX'])
 
 def resp(code: int, msg: str, decision: str, client_id: str | None, request_id: str, source_ip: str) -> dict:
@@ -78,7 +79,7 @@ def lambda_handler(event, context):
         "nbf": now,
         "exp": now + 3600,
     }
-    token = jwt.encode(payload, os.environ["JWT_SIGNING_KEY"], algorithm="HS256")
+    token = jwt.encode(payload, _secrets.get_secret_value(SecretId=SIGNING_KEY_ID)['SecretString'], algorithm="HS256")
     logger.info(json.dumps({
         "event": "jwt_issue",
         "status": 'approved',
