@@ -4,14 +4,26 @@ import os
 import time
 import re
 import jwt
+import logging
+
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
 
 _secrets = boto3.client('secretsmanager')
 
 SECRET_ID = os.environ['SHARED_SECRET_ID']
 CLIENT_ID_REGEX = re.compile(os.environ['CLIENT_ID_REGEX'])
 
-def resp(code: int, msg: str) -> dict:
-    return {"statusCode": code, "body": json.dumps({"error": msg})}
+def resp(code: int, msg: str, decision: str, client_id: str | None, request_id: str, source_ip: str) -> dict:
+    logger.info(json.dumps({
+        "event": "jwt_issue",
+        "status": decision,
+        "reason": msg,
+        "client_id": client_id,
+        "sourceIp": source_ip,
+        "request_id": request_id
+    }))
+    return {"statusCode": code, "body": json.dumps({"error": 'invalid_client'})}
 
 def get_client_secret() -> list[str]:
     current = _secrets.get_secret_value(SecretId=SECRET_ID, VersionStage="AWSCURRENT")['SecretString']
@@ -23,18 +35,39 @@ def get_client_secret() -> list[str]:
         pass
 
     return [v for v in [current, previous] if v is not None]
+
+def get_source_ip(event: dict) -> str | None:
+    ip = event.get("requestContext", {}).get("identity", {}).get("sourceIp")
+    if ip:
+        return ip
+
+    xff = (event.get("headers", {}) or {}).get("X-Forwarded-For") \
+          or (event.get("headers", {}) or {}).get("x-forwarded-for")
+    if xff:
+        return xff.split(",")[0].strip()
+
+    return None
     
 def lambda_handler(event, context):
-    try:
-        client_id = event['client_id']
-        client_secret = event['client_secret']
-        audience = event['audience']
-    except KeyError:
-        return resp(400, 'invalid_request')
+    body = event.get('body', None)
+    source_ip = get_source_ip(event)
+    request_id = event.get('requestContext', {}).get('requestId', None)
 
-    if audience != 'analytics-api': return resp(400, 'invalid_client')
-    if not client_id or not CLIENT_ID_REGEX.fullmatch(client_id): return resp(400, 'invalid_client')
-    if client_secret not in get_client_secret(): return resp(400, 'invalid_client')
+    if not body:
+        return resp(400, 'invalid_request', 'rejected', None, request_id, source_ip)
+
+    try:
+        data = json.loads(body)
+    except json.JSONDecodeError:
+        return resp(400, 'invalid_request', 'rejected', None, request_id, source_ip)
+
+    client_id = data.get('client_id', None)
+    client_secret = data.get('client_secret', None)
+    audience = data.get('audience', None)
+
+    if audience != 'analytics-api': return resp(400, 'invalid_audience', 'rejected', client_id, request_id, source_ip)
+    if not client_id or not CLIENT_ID_REGEX.fullmatch(client_id): return resp(400, 'invalid_client_id', 'rejected', client_id, request_id, source_ip)
+    if client_secret not in get_client_secret(): return resp(400, 'invalid_client_secret', 'rejected', client_id, request_id, source_ip)
 
     now = int(time.time())
     payload = {
@@ -46,4 +79,19 @@ def lambda_handler(event, context):
         "exp": now + 3600,
     }
     token = jwt.encode(payload, os.environ["JWT_SIGNING_KEY"], algorithm="HS256")
-    return {"statusCode": 200, "body": json.dumps({"access_token": token, "token_type": "JWT", "expires_in": 3600})}
+    logger.info(json.dumps({
+        "event": "jwt_issue",
+        "status": 'approved',
+        "reason": 'valid_client',
+        "client_id": client_id,
+        "sourceIp": source_ip,
+        "request_id": request_id
+    }))
+    return {
+        "statusCode": 200, 
+        "body": json.dumps({
+            "access_token": token, 
+            "token_type": "JWT", 
+            "expires_in": 3600
+        })
+    }
