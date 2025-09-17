@@ -38,7 +38,7 @@ def get_client_secret() -> list[str]:
 
     return [v for v in [current, previous] if v is not None]
 
-def get_signing_key():
+def get_signing_key() -> str:
     global _signing_key
     if _signing_key is None:
         _signing_key = _secrets.get_secret_value(SecretId=SIGNING_KEY_ID)['SecretString']

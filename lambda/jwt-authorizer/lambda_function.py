@@ -17,7 +17,7 @@ EXPECTED_ISSUER = os.environ['ISSUER']
 SIGNING_KEY_ID = os.environ['SIGNING_KEY_ID']
 CLIENT_ID_REGEX = re.compile(os.environ['CLIENT_ID_REGEX'])
 
-def get_signing_key():
+def get_signing_key() -> str:
     global _signing_key
     if _signing_key is None:
         _signing_key = _secrets.get_secret_value(SecretId=SIGNING_KEY_ID)['SecretString']
