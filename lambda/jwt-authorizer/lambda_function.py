@@ -24,11 +24,24 @@ def get_signing_key() -> str:
     
     return _signing_key
 
-def deny(reason:str):
+def get_source_ip(event: dict) -> str | None:
+    ip = event.get("requestContext", {}).get("identity", {}).get("sourceIp")
+    if ip:
+        return ip
+
+    xff = (event.get("headers", {}) or {}).get("X-Forwarded-For") or (event.get("headers", {}) or {}).get("x-forwarded-for")
+    if xff:
+        return xff.split(",")[0].strip()
+
+    return None
+
+def deny(reason:str, source_ip: str, request_id: str) -> None:
     logger.info(json.dumps({
         "event": "jwt_auth",
         "status": "denied",
-        "reason": reason
+        "reason": reason,
+        "source_ip": source_ip,
+        "request_id": request_id
     }))
 
     raise Exception("Unauthorized")
@@ -49,12 +62,14 @@ def build_policy(principal_id: str, effect: str, resource: str) -> dict:
     }
     return policy
 
-def allow(sub: str, claims: dict, method_arn: str) -> dict:
+def allow(sub: str, claims: dict, method_arn: str, source_ip: str, request_id: str) -> dict:
     logger.info(json.dumps({
         "event": "jwt_auth",
         "status": "allowed",
         "client_id": sub,
-        "claims": claims
+        "claims": claims,
+        "source_ip": source_ip,
+        "request_id": request_id
     }))
 
     return build_policy(sub, "Allow", method_arn)
@@ -80,19 +95,22 @@ def validate_jwt(token: str, secret: str, subject: str) -> dict:
 
 
 def lambda_handler(event, context):
+    sourceIp = get_source_ip(event)
+    request_id = event.get('requestContext', {}).get('requestId', None)
+
     token = event["headers"].get("Authorization")
     sub = event["headers"].get("X-Subject")
     
     if not token or not token.lower().startswith("bearer "):
-        return deny("invalid_authorization_header")
-    
+        return deny("invalid_authorization_header", sourceIp, request_id)
+
     token = token[7:]
 
     try:
         claims = validate_jwt(token, get_signing_key(), sub)
     except PyJWTError as e:
-        return deny(str(e))
+        return deny(str(e), sourceIp, request_id)
     except Exception:
-        return deny("invalid_token")
+        return deny("invalid_token", sourceIp, request_id)
 
-    return allow(claims["sub"], claims, event["methodArn"])
+    return allow(claims["sub"], claims, event["methodArn"], sourceIp, request_id)
