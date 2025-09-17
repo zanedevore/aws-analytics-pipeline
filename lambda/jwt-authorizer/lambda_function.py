@@ -33,6 +33,32 @@ def deny(reason:str):
 
     raise Exception("Unauthorized")
 
+def build_policy(principal_id: str, effect: str, resource: str) -> dict:
+    policy = {
+        "principalId": principal_id,
+        "policyDocument": {
+            "Version": "2012-10-17",
+            "Statement": [
+                {
+                    "Action": "execute-api:Invoke",
+                    "Effect": effect,
+                    "Resource": [resource]
+                }
+            ]
+        }
+    }
+    return policy
+
+def allow(sub: str, claims: dict, method_arn: str) -> dict:
+    logger.info(json.dumps({
+        "event": "jwt_auth",
+        "status": "allowed",
+        "client_id": sub,
+        "claims": claims
+    }))
+
+    return build_policy(sub, "Allow", method_arn)
+
 def validate_jwt(token: str, secret: str, subject: str) -> dict:
     claims = jwt.decode(
         token,
@@ -69,7 +95,4 @@ def lambda_handler(event, context):
     except Exception:
         return deny("invalid_token")
 
-    return {
-        'statusCode': 200,
-        'body': json.dumps('Hello from Lambda!')
-    }
+    return allow(claims["sub"], claims, event["methodArn"])
