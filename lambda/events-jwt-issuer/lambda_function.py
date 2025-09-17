@@ -10,6 +10,7 @@ logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
 _secrets = boto3.client('secretsmanager')
+_signing_key = None
 
 SECRET_ID = os.environ['SHARED_SECRET_ID']
 SIGNING_KEY_ID = os.environ['SIGNING_KEY_ID']
@@ -37,13 +38,19 @@ def get_client_secret() -> list[str]:
 
     return [v for v in [current, previous] if v is not None]
 
+def get_signing_key():
+    global _signing_key
+    if _signing_key is None:
+        _signing_key = _secrets.get_secret_value(SecretId=SIGNING_KEY_ID)['SecretString']
+    
+    return _signing_key
+
 def get_source_ip(event: dict) -> str | None:
     ip = event.get("requestContext", {}).get("identity", {}).get("sourceIp")
     if ip:
         return ip
 
-    xff = (event.get("headers", {}) or {}).get("X-Forwarded-For") \
-          or (event.get("headers", {}) or {}).get("x-forwarded-for")
+    xff = (event.get("headers", {}) or {}).get("X-Forwarded-For") or (event.get("headers", {}) or {}).get("x-forwarded-for")
     if xff:
         return xff.split(",")[0].strip()
 
@@ -53,6 +60,8 @@ def lambda_handler(event, context):
     body = event.get('body', None)
     source_ip = get_source_ip(event)
     request_id = event.get('requestContext', {}).get('requestId', None)
+
+    key = get_signing_key()
 
     if not body:
         return resp(400, 'invalid_request', 'rejected', None, request_id, source_ip)
@@ -79,7 +88,7 @@ def lambda_handler(event, context):
         "nbf": now,
         "exp": now + 3600,
     }
-    token = jwt.encode(payload, _secrets.get_secret_value(SecretId=SIGNING_KEY_ID)['SecretString'], algorithm="HS256")
+    token = jwt.encode(payload, key, algorithm="HS256")
     logger.info(json.dumps({
         "event": "jwt_issue",
         "status": 'approved',
