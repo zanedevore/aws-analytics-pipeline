@@ -50,7 +50,6 @@ def create_secret(token: str, arn: str) -> dict | None:
     )
 
 def set_secret(encrytped_secret_b64: str) -> None:
-
     secret = encrypt_secret(b"" + encrytped_secret_b64.encode() + b"\n", get_public_key()['secret'])
 
     body = {
@@ -103,7 +102,7 @@ def lambda_handler(event, context):
     arn = event.get('SecretId')
 
     if step == 'createSecret':
-        return create_secret(token)
+        return create_secret(token, arn)
     elif step == 'setSecret':
         return set_secret(_secrets.get_secret_value(SecretId=arn, VersionStage="AWSPENDING")['SecretString'])
     elif step == 'testSecret':
