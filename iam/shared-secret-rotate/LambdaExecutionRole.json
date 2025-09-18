@@ -1,33 +1,40 @@
 {
-    "Version": "2012-10-17",
-    "Statement": [
-        {
-            "Effect": "Allow",
-            "Action": "logs:CreateLogGroup",
-            "Resource": "arn:aws:logs:us-east-1:{ACCOUNT_ID}:*"
-        },
-        {
-            "Effect": "Allow",
-            "Action": [
-                "logs:CreateLogStream",
-                "logs:PutLogEvents"
-            ],
-            "Resource": [
-                "arn:aws:logs:us-east-1:{ACCOUNT_ID}:log-group:/aws/lambda/{LAMBDA_FUNCTION}:*"
-            ]
-        },
-        {
-            "Effect": "Allow",
-            "Action": [
-                "secretsmanager:DescribeSecret",
-                "secretsmanager:GetSecretValue",
-                "secretsmanager:PutSecretValue",
-                "secretsmanager:UpdateSecretVersionStage",
-                "secretsmanager:ListSecretVersionIds"
-            ],
-            "Resource": [
-                "arn:aws:secretsmanager:us-east-1:{ACCOUNT_ID}:secret:{SHARED_SECRET_ID}"
-            ]
-        }
-    ]
+	"Version": "2012-10-17",
+	"Statement": [
+		{
+			"Effect": "Allow",
+			"Action": "logs:CreateLogGroup",
+			"Resource": "arn:aws:logs:us-east-1:{ACCOUNT_ID}:*"
+		},
+		{
+			"Effect": "Allow",
+			"Action": [
+				"logs:CreateLogStream",
+				"logs:PutLogEvents"
+			],
+			"Resource": [
+				"arn:aws:logs:us-east-1:{ACCOUNT_ID}:log-group:/aws/lambda/{LAMBDA_FUNCTION}:*"
+			]
+		},
+		{
+			"Effect": "Allow",
+			"Action": [
+				"secretsmanager:DescribeSecret",
+				"secretsmanager:GetSecretValue",
+				"secretsmanager:PutSecretValue",
+				"secretsmanager:UpdateSecretVersionStage",
+				"secretsmanager:ListSecretVersionIds"
+			],
+			"Resource": [
+				"arn:aws:secretsmanager:us-east-1:{ACCOUNT_ID}:secret:{SHARED_SECRET_ID}"
+			]
+		},
+		{
+		    "Effect": "Allow",
+		    "Action": [
+		        "secretsmanager:GetSecretValue"
+		    ],
+		    "Resource": ["arn:aws:secretsmanager:us-east-1:{ACCOUNT_ID}:secret:{API_KEY_ID}"]
+		}
+	]
 }
