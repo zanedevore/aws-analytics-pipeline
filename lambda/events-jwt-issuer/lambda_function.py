@@ -29,16 +29,16 @@ def resp(code: int, msg: str, decision: str, client_id: str | None, request_id: 
 
 def get_client_secret() -> list[str]:
     current = _secrets.get_secret_value(SecretId=SECRET_ID, VersionStage="AWSCURRENT")['SecretString']
-    previous = None
+    pending = None
 
     try:
-        previous = _secrets.get_secret_value(SecretId=SECRET_ID, VersionStage="AWSPREVIOUS")['SecretString']
+        pending = _secrets.get_secret_value(SecretId=SECRET_ID, VersionStage="AWSPENDING")['SecretString']
     except _secrets.exceptions.ResourceNotFoundException:
         pass
 
-    return [v for v in [current, previous] if v is not None]
+    return [v for v in [current, pending] if v is not None]
 
-def get_signing_key() -> str:
+def get_signing_key():
     global _signing_key
     if _signing_key is None:
         _signing_key = _secrets.get_secret_value(SecretId=SIGNING_KEY_ID)['SecretString']
@@ -57,6 +57,7 @@ def get_source_ip(event: dict) -> str | None:
     return None
     
 def lambda_handler(event, context):
+    headers = event.get("headers", None)
     body = event.get('body', None)
     source_ip = get_source_ip(event)
     request_id = event.get('requestContext', {}).get('requestId', None)
@@ -72,7 +73,7 @@ def lambda_handler(event, context):
         return resp(400, 'invalid_request', 'rejected', None, request_id, source_ip)
 
     client_id = data.get('client_id', None)
-    client_secret = data.get('client_secret', None)
+    client_secret = headers.get("x-client-secret")
     audience = data.get('audience', None)
 
     if audience != 'analytics-api': return resp(400, 'invalid_audience', 'rejected', client_id, request_id, source_ip)

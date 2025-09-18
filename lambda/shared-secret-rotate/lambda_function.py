@@ -51,7 +51,7 @@ def create_secret(token: str, arn: str) -> dict | None:
 
 def set_secret(secret: str) -> None:
     public_key = get_public_key()
-    secret = encrypt_secret(b"" + secret.encode() + b"\n", public_key['secret'])
+    secret = encrypt_secret(secret.encode(), public_key['secret'])
 
     body = {
         "id": "DISTRIBUTED_SECRET",
@@ -68,14 +68,13 @@ def test_secret(arn: str) -> dict:
     secret = _secrets.get_secret_value(SecretId=arn, VersionStage="AWSPENDING")['SecretString']
     body = {
         "client_id": TEST_CLIENT_ID,
-        "client_secret": secret,
         "audience": TEST_AUDIENCE
     }
 
     token_response = requests.post(
         PROBE_URL, 
         json=body,
-        headers={"Content-Type": "application/json"}
+        headers={"Content-Type": "application/json", "x-client-secret": secret}
     )
     token_response.raise_for_status()
     return {"message": "testSecret succeeded"}
@@ -98,7 +97,7 @@ def finish_secret(token: str, arn: str) -> dict:
     return {"message": "finishSecret complete"}
 
 def lambda_handler(event, context):
-    step = event['step']
+    step = event['Step']
     token = event['ClientRequestToken']
     arn = event.get('SecretId')
 
