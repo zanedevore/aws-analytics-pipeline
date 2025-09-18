@@ -12,14 +12,18 @@ api_url = os.getenv("ApiUrl")
 # Get JWT token
 auth_body = {
     "client_id": subject,
-    "client_secret": shared_secret,
     "audience": audience
+}
+
+Headers = {
+    "x-client-secret": shared_secret,
+    "Content-Type": "application/json"
 }
 
 token_response = requests.post(
     auth_url,
     json=auth_body,
-    headers={"Content-Type": "application/json"}
+    headers=Headers
 )
 token_response.raise_for_status()
 token = token_response.json()

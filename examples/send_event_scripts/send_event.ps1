@@ -8,11 +8,15 @@ $ApiUrl = $env:ApiUrl
 # Get JWT token
 $AuthBody = @{
     client_id = $Subject
-    client_secret = $Shared_Secret
     audience = $Audience
 } | ConvertTo-Json
 
-$Token = Invoke-RestMethod -Method POST -Uri $AuthUrl -Body $AuthBody -ContentType "application/json" -ErrorAction Stop
+$Headers = @{
+    'x-client-secret' = $Shared_Secret
+    'Content-Type' = 'application/json'
+}
+
+$Token = Invoke-RestMethod -Method POST -Uri $AuthUrl -Body $AuthBody -Headers $Headers -ErrorAction Stop
 
 # Send event
 $Headers = @{
