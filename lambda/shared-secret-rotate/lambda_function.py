@@ -35,7 +35,7 @@ def encrypt_secret(message: bytes, public_key_b64: str) -> str:
 
 def create_secret(token: str, arn: str) -> dict | None:
     try:
-        _secrets.get_secret_value(SecretId=arn, VersionID=token, VersionStage="AWSPENDING")
+        _secrets.get_secret_value(SecretId=arn, VersionStage="AWSPENDING")
         return {'statusCode': 500, 'body': 'Pending secret already exists'}
     except _secrets.exceptions.ResourceNotFoundException:
         pass
@@ -49,13 +49,14 @@ def create_secret(token: str, arn: str) -> dict | None:
         VersionStages = ['AWSPENDING']
     )
 
-def set_secret(encrytped_secret_b64: str) -> None:
-    secret = encrypt_secret(b"" + encrytped_secret_b64.encode() + b"\n", get_public_key()['secret'])
+def set_secret(secret: str) -> None:
+    public_key = get_public_key()
+    secret = encrypt_secret(b"" + secret.encode() + b"\n", public_key['secret'])
 
     body = {
         "id": "DISTRIBUTED_SECRET",
         "secret": secret,
-        "key_id": get_public_key()['key_id'],
+        "key_id": public_key['key_id'],
         "domain": "*"
     }
 
