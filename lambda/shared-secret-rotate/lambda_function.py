@@ -1,4 +1,3 @@
-import json
 import boto3
 import requests
 import secrets
@@ -6,6 +5,9 @@ import os
 import logging
 import base64
 from nacl.public import PublicKey, SealedBox
+
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
 
 PUBLIC_KEY_URL = os.environ['PUBLIC_KEY_URL']
 UPDATE_SECRET_URL = os.environ['UPDATE_SECRET_URL']
@@ -49,6 +51,8 @@ def create_secret(token: str, arn: str) -> dict | None:
         VersionStages = ['AWSPENDING']
     )
 
+    logger.info("STEP: Create Secret Complete")
+
 def set_secret(secret: str) -> None:
     public_key = get_public_key()
     secret = encrypt_secret(secret.encode(), public_key['secret'])
@@ -62,6 +66,8 @@ def set_secret(secret: str) -> None:
 
     resp = requests.patch(UPDATE_SECRET_URL, headers=_base_header, json=body)
     resp.raise_for_status()
+
+    logger.info("STEP: Set Secret Complete")
 
 
 def test_secret(arn: str) -> dict:
@@ -77,6 +83,8 @@ def test_secret(arn: str) -> dict:
         headers={"Content-Type": "application/json", "x-client-secret": secret}
     )
     token_response.raise_for_status()
+
+    logger.info("STEP: Test Secret Complete")
     return {"message": "testSecret succeeded"}
 
 def finish_secret(token: str, arn: str) -> dict:
@@ -94,6 +102,7 @@ def finish_secret(token: str, arn: str) -> dict:
         RemoveFromVersionId = current_version
     )
 
+    logger.info("STEP: Finish Secret Complete")
     return {"message": "finishSecret complete"}
 
 def lambda_handler(event, context):
