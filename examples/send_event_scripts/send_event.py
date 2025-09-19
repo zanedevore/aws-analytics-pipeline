@@ -20,6 +20,8 @@ Headers = {
     "Content-Type": "application/json"
 }
 
+print("Requesting token...")
+
 token_response = requests.post(
     auth_url,
     json=auth_body,
@@ -28,6 +30,8 @@ token_response = requests.post(
 token_response.raise_for_status()
 token = token_response.json()
 
+print("Token received:", token['access_token'][:10] + "...")
+
 # Send event
 headers = {
     "Authorization": f"Bearer {token['access_token']}",
@@ -35,11 +39,21 @@ headers = {
 }
 
 event_body = {
+    "device": "pc",
+    "event_id": f"{subject}-000001",
     "event_type": "join",
     "player_id": "123",
     "server_id": subject,
-    "ts": "2025-09-12T18:04:00Z"
+    "server_version": "1.0.0",
+    "ts": "2025-09-19T18:04:00Z",
+    "properties": {
+        "player_action": "purchase",
+        "item": "truck",
+        "player_server_duration": "1200"
+    }
 }
+
+print("Sending event...")
 
 event_response = requests.post(
     api_url,
