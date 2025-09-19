@@ -25,10 +25,18 @@ $Headers = @{
 }
 
 $EventBody = @{
+    device = 'pc'
+    event_id = "$Subject-000001"
     event_type = 'join'
     player_id = '123'
     server_id = $Subject
-    ts = '2025-09-12T18:04:00Z'
+    server_version = '1.0.0'
+    ts = '2025-09-19T18:04:00Z'
+    properties = @{
+        player_action = 'purchase'
+        item = 'truck'
+        player_server_duration = "1200"
+    }
 } | ConvertTo-Json
 
 Invoke-RestMethod -Method POST -Uri $ApiUrl -Headers $Headers -Body $EventBody -ContentType "application/json"

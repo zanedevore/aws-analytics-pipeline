@@ -18,5 +18,25 @@
     "Name": "ts",
     "Type": "timestamp",
     "Comment": ""
+  },
+  {
+    "Name": "event_id",
+    "Type": "string",
+    "Comment": ""
+  },
+  {
+    "Name": "server_version",
+    "Type": "string",
+    "Comment": ""
+  },
+  {
+    "Name": "device",
+    "Type": "string",
+    "Comment": ""
+  },
+  {
+    "Name": "properties",
+    "Type": "map<string,string>",
+    "Comment": ""
   }
 ]
