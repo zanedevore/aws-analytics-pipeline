@@ -87,7 +87,7 @@ def lambda_handler(event, context):
         "aud": "analytics-api",
         "iat": now,
         "nbf": now,
-        "exp": now + 3600,
+        "exp": now + 1200,
     }
     token = jwt.encode(payload, key, algorithm="HS256")
     logger.info(json.dumps({
