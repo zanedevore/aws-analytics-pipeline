@@ -1,6 +1,10 @@
 {
-    "event_type":"join",
-    "player_id":"123",
-    "server_id":"abc",
-    "ts":"2025-09-12T18:04:00Z"
+    "device":  "pc",
+    "properties":  {},
+    "player_id":  "123",
+    "server_version":  "1.0.0",
+    "event_type":  "join",
+    "event_id":  "srv-prod-eeeeeeeeee-000001",
+    "ts":  "2025-09-19T18:04:00Z",
+    "server_id":  "srv-prod-eeeeeeeeee"
 }
