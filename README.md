@@ -56,6 +56,7 @@ This project emphasizes **security by design** across both application and cloud
 - **SQS for decoupling**: Protects downstream services from burst traffic and enables fault tolerance.  
 - **Firehose Parquet conversion**: Reduces storage costs and speeds up Athena queries.  
 - **Partitioned S3 storage**: Organizes data by date/hour for efficient queries.  
+- **S3 Lifecycle rules**: Moves infrequently accessed data between storage tiers to save costs.
 - **Cloud-native observability**: Metrics, logs, and alarms in CloudWatch provide real-time insights into system health and security.  
 - **Scalability & HA**: Fully serverless, automatically scales with traffic, and avoids single points of failure.  
 
@@ -84,7 +85,7 @@ These examples serve as practical references for testing the pipeline, verifying
 
 - **Lambda functions** (custom authorizer, JWT issuer, SQS processor, secret rotation)  
 - **Lambda layers**  
-- **Amazon S3** (partitioned data lake storage)  
+- **Amazon S3** (partitioned data lake storage with lifecycle rules)  
 - **Amazon API Gateway** (request entrypoint, auth, rate limiting)  
 - **API Gateway custom authorizers**  
 - **Amazon SQS** (queue-based decoupling)  
