@@ -16,7 +16,11 @@ $Headers = @{
     'Content-Type' = 'application/json'
 }
 
+Write-Host "Requesting token..."
+
 $Token = Invoke-RestMethod -Method POST -Uri $AuthUrl -Body $AuthBody -Headers $Headers -ErrorAction Stop
+
+Write-Host "Token received: $($Token.access_token.Substring(0, 10))..."
 
 # Send event
 $Headers = @{
@@ -39,4 +43,8 @@ $EventBody = @{
     }
 } | ConvertTo-Json
 
+Write-Host "Sending event..."
+
 Invoke-RestMethod -Method POST -Uri $ApiUrl -Headers $Headers -Body $EventBody -ContentType "application/json"
+
+Write-Host "Event sent successfully: $($EventBody | ConvertFrom-Json | ConvertTo-Json -Depth 10)"
