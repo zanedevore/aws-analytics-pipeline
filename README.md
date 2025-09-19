@@ -2,7 +2,7 @@
 
 This repository contains an AWS-based serverless architecture for processing near real-time event data. The system ingests application events, validates and secures requests with JWT-based authentication, and stores data in an optimized format for cost-effective analytics.
 
-> ⚠️ **Note:** This repository is not intended as a deployment guide. It serves as a reference architecture and code example for secure and scalable data pipelines in the cloud.  
+> **Note:** This repository is not intended as a deployment guide. It serves as a reference architecture and code example for secure and scalable data pipelines in the cloud.  
 
 ---
 
@@ -36,13 +36,13 @@ API Gateway -> SQS -> Kinesis Firehose -> S3 -> Athena
 
 This project emphasizes **security by design** across both application and cloud layers:
 
-### 🔒 Application Security
+### Application Security
 - **JWT-based authentication** ensures only trusted clients can push data.  
 - Tokens are short-lived (20 minutes), reducing replay attack windows.  
 - All requests are rate-limited and throttled at the API Gateway level.  
 - Input events must conform to strict JSON schemas (see `examples/schemas/glue-data-catalog-json-schema.json`).  
 
-### ☁️ Cloud Security
+### Cloud Security
 - **Least privilege IAM roles/policies** limit Lambda and service access.  
 - **Secrets Manager** securely stores client secrets, rotated every 30 days by a custom Lambda (`lambda/shared-secret-rotate/lambda_function.py`).  
 - **CloudWatch logging** in JSON format enables structured monitoring without exposing sensitive data.  
@@ -60,6 +60,25 @@ This project emphasizes **security by design** across both application and cloud
 - **Scalability & HA**: Fully serverless, automatically scales with traffic, and avoids single points of failure.  
 
 ---
+
+## Examples
+
+The `examples/` directory contains reference materials and scripts that demonstrate how the pipeline works end-to-end:
+
+- **`send_event_scripts/`**  
+  Provides scripts for simulating event submission through the full pipeline. These scripts handle:
+  - Requesting a JWT token from the `/token` endpoint  
+  - Using the token to send events to the `/events` endpoint  
+  - Ensuring event data conforms to the expected schema  
+
+- **`athena_queries/`**  
+  Includes sample SQL queries designed for **Amazon Athena**, showing how data stored in S3 (in Parquet format and partitioned by time) can be queried efficiently.  
+
+- **`schemas/`**  
+  Contains JSON schema definitions (such as `glue-data-catalog-json-schema.json`) used for validating event data and registering schema information in the **AWS Glue Data Catalog**.  
+
+These examples serve as practical references for testing the pipeline, verifying schema compliance, and exploring how data can be analyzed once ingested. They are not intended as production-ready code, but as demonstrations of how different components interact securely and efficiently.  
+
 
 ## AWS Services Used
 
