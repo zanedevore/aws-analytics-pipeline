@@ -13,6 +13,8 @@ api_url = os.getenv("ApiUrl")
 def generate_client_id():
     base = "srv-prod-"
     suffix = os.urandom(5).hex()
+
+    print("Generated client ID:", base + suffix)
     return base + suffix
 
 def get_token(subject: str) -> str:
