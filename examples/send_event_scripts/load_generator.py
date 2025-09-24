@@ -3,6 +3,7 @@ import requests
 import random
 import time
 import sys
+from datetime import datetime, timezone
 
 shared_secret = os.getenv("ClientSecret")
 audience = os.getenv("Audience")
@@ -63,7 +64,7 @@ def send_data(events: int):
             "player_id": random.choice(possible_values["player_id"]),
             "server_id": subject,
             "server_version": "1.0.0",
-            "ts": "2025-09-19T18:04:00Z",
+            "ts": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
             "properties": {
                 "player_action": random.choice(possible_values["event_type"]),
                 "item": random.choice(possible_values["item"]),
