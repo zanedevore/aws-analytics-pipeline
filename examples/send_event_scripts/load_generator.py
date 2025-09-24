@@ -85,7 +85,7 @@ def send_data(events: int):
 
         print(f"Event {i+1} sent, response:", event_response.status_code)
 
-        time.sleep(1)
+        time.sleep(0.5)
 
 if __name__ == "__main__":
     if len(sys.argv) != 2:
